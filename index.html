@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot Posts — Inoxidables del Norte</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{min-height:100vh;background:#1a1208}
+body{font-family:'Montserrat',sans-serif}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#8a6a1a;border-radius:2px}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+textarea,input{color-scheme:dark}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const G="#c9a84c",GL="#f0d080",GD="#8a6a1a";
+const DARK="#1a1208",CREAM="#f7f0e0";
+const GRN="#1e5c38",GRNL="#2d8a55";
+const FIT="#00b4d8",FITL="#90e0ef",FITD="#0077b6";
+
+const HOOKS_MX = [
+  "¿Le estás dando toxinas a tu familia sin saberlo?",
+  "¿Sabes qué libera tu sartén cuando lo calientas?",
+  "¿Sigues cocinando con teflón rayado?",
+  "¿Tu cocina cuida o descuida tu salud?",
+  "¿Cuánto vale la salud de tu familia?",
+  "¿Ya sabes por qué los chefs eligen acero inoxidable?",
+  "¿Estás invirtiendo en salud o en gastos recurrentes?",
+  "¿Qué pasa cuando el teflón llega a alta temperatura?",
+  "¿Tu sartén tiene vida útil vencida?",
+  "Antes de encender la estufa, lee esto…",
+  "Cambia uno. Cambia todo.",
+  "Cocinar bien empieza antes de la receta.",
+  "El teflón se desgasta. El acero inoxidable, no.",
+  "Elegancia y salud en cada cocción.",
+  "En tu cocina también se toman decisiones de salud.",
+  "Hay cocinas que cuidan… y cocinas que enferman.",
+  "La calidad se siente desde el primer platillo.",
+  "Lo que no ves en tu sartén puede estar en tu comida.",
+  "No es solo cocinar. Es cuidar.",
+  "Porque tu familia merece más que lo promedio.",
+  "Sin tóxicos. Sin riesgos. Sin compromisos.",
+  "Tu cocina habla de ti. ¿Qué dice hoy?",
+  "Tu salud no es negociable.",
+  "Un buen utensilio dura más que diez baratos.",
+  "Vivirás mejor si cocinas mejor.",
+  "Cuando cuidas lo que comes, cuidas tu futuro.",
+  "El secreto de la cocina saludable no está en los ingredientes.",
+  "Con el material correcto, cualquier platillo es obra de arte.",
+  "Los mejores cocineros del mundo tienen algo en común.",
+  "Sube de nivel en tu cocina hoy.",
+].sort();
+
+const HOOKS_FIT = [
+  "¿Tu sartén de teflón está saboteando tus resultados en el gym?",
+  "¿Cuántas calorías extras agrega el aceite de tu sartén que se pega?",
+  "Cocina fit sin comprometer el sabor ni la salud.",
+  "El atleta que eres merece la cocina que cuida tus resultados.",
+  "¿Sabías que el acero inoxidable te ayuda a cocinar con menos grasa?",
+  "Tu dieta es perfecta… pero ¿y tu sartén?",
+  "Sin teflón, sin tóxicos, sin comprometer tu rendimiento.",
+  "Los nutricionistas top cocinan en acero inoxidable. ¿Y tú?",
+  "Proteínas perfectas, sin químicos que arruinen tu esfuerzo.",
+  "Meal prep nivel pro: el acero inoxidable es tu mejor aliado.",
+  "Cocina limpia = resultados limpios.",
+  "Más músculo, menos toxinas. Así de simple.",
+  "El gym está en orden. Ahora ordena tu cocina.",
+  "Tu bienestar no termina cuando sales del gym.",
+  "¿Preparas tu comida fit pero en utensilios tóxicos?",
+  "Acero T304: el secreto de los atletas que cocinan en casa.",
+  "Rendimiento máximo empieza antes del primer bocado.",
+  "Invierte en tu cocina como inviertes en tu cuerpo.",
+  "Sin antiadherente que se desprenda en tus batidos de proteína.",
+  "¿Cada cuánto cambias tu sartén? El acero no se cambia nunca.",
+].sort();
+
+const PLATILLOS_MX = [
+  "Arroz con leche","Arroz rojo","Bistec a la mexicana","Caldo de pollo","Caldo de res",
+  "Camarones al mojo de ajo","Carnitas","Ceviche","Chiles en nogada","Chilaquiles",
+  "Chiles rellenos","Caldo tlalpeño","Crema de elote","Ejotes con crema",
+  "Enchiladas verdes","Enfrijoladas","Ensalada César","Espagueti a la boloñesa",
+  "Estofado de res","Fajitas de pollo","Fideo seco","Flautas de pollo",
+  "Guisado de lentejas","Huevos a la mexicana","Lomo en salsa",
+  "Milanesa de res","Mole rojo","Molletes","Papas con chorizo",
+  "Pasta con camarones","Picadillo","Pipián verde","Pollo al ajillo","Pollo asado",
+  "Pozole rojo","Pozole verde","Puntas de filete","Quesadillas","Res en salsa verde",
+  "Sopa de lima","Sopa de tortilla","Sopa de verduras","Tacos de barbacoa",
+  "Tamal de rajas","Tamales de elote","Tamales rojos","Tinga de pollo","Tortas de camarón"
+].sort();
+
+const PLATILLOS_FIT = [
+  "Bowl de pollo con quinoa y aguacate",
+  "Pechuga de pollo a la plancha con verduras al vapor",
+  "Salmón sellado con espárragos",
+  "Omelette de claras con espinacas y champiñones",
+  "Atún sellado con ensalada de pepino",
+  "Res magra con brócoli al vapor",
+  "Camarones salteados con calabacita",
+  "Pollo al limón con arroz de coliflor",
+  "Bowl de proteína con garbanzo y kale",
+  "Tilapia al vapor con chayote",
+  "Huevos pochados con espinacas",
+  "Pavo molido con ejotes y zanahoria",
+  "Batch cooking de pechuga semanal",
+  "Meal prep de arroz integral con pollo",
+  "Avena proteica con plátano y mantequilla de almendra",
+  "Ensalada de atún con aguacate y tomate",
+  "Sopa de lentejas con espinacas",
+  "Stir-fry de tofu con verduras",
+  "Filetes de robalo con limón y hierbas",
+  "Verduras salteadas sin aceite al wok",
+  "Claras revueltas con champiñones y pimiento",
+].sort();
+
+const PRODUCTOS_MX = [
+  "Juego completo de ollas (oferta mayo $14,500)",
+  "Sartén de acero T304",
+  "Tamalera 30L (de $27,000 a $19,900)",
+  "Olla express / presión",
+  "Vaporera de acero inoxidable",
+  "Wok de acero inoxidable",
+  "Olla para caldo (6 litros)",
+  "Set de sartenes variados",
+  "Juego completo + portaespecias",
+];
+const PRODUCTOS_FIT = [
+  "Sartén de acero T304 (cocina con mínimo aceite)",
+  "Vaporera de acero inoxidable (proteínas y verduras perfectas)",
+  "Wok de acero inoxidable (stir-fry fit sin teflón)",
+  "Set de sartenes para meal prep semanal",
+  "Olla para caldo proteico (6 litros)",
+  "Juego fitness completo: sartén + vaporera + wok",
+  "Olla express / presión (legumbres rápidas)",
+  "Sartén pequeña para claras y omelets",
+];
+
+const TONES = [
+  {k:"educativo",l:"🎓 Educativo"},{k:"emocional",l:"💛 Emocional"},
+  {k:"urgente",l:"🔥 Urgente"},{k:"lujoso",l:"✨ Lujoso"},
+  {k:"salud",l:"💚 Salud"},{k:"comparativo",l:"⚖️ Comparativo"},
+];
+const TONE_DESC = {
+  educativo:"informativo y educativo sobre los beneficios del acero T304",
+  emocional:"emotivo y cercano, apelando al amor familiar y el cuidado del hogar",
+  urgente:"urgente y con sentido de escasez u oferta limitada",
+  lujoso:"elegante, aspiracional y de lujo, estilo premium",
+  salud:"enfocado en salud, bienestar y nutrición familiar",
+  comparativo:"comparativo entre teflón y acero inoxidable T304, dejando claro quién gana",
+};
+
+function Select({placeholder,options,value,onChange,ac=G,al=GL}){
+  const [open,setOpen]=useState(false);
+  const ref=useRef();
+  useEffect(()=>{
+    const fn=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false)};
+    document.addEventListener("mousedown",fn);
+    return()=>document.removeEventListener("mousedown",fn);
+  },[]);
+  return(
+    <div ref={ref} style={{position:"relative",width:"100%"}}>
+      <button onClick={()=>setOpen(o=>!o)} style={{
+        width:"100%",background:value?`${ac}1e`:`${ac}0d`,
+        border:`1px solid ${value?ac+"99":ac+"40"}`,color:value?al:"rgba(247,240,224,.5)",
+        padding:"10px 14px",borderRadius:7,fontFamily:"Montserrat,sans-serif",fontSize:".8rem",
+        cursor:"pointer",textAlign:"left",display:"flex",justifyContent:"space-between",
+        alignItems:"center",gap:8,transition:"all .2s"}}>
+        <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{value||placeholder}</span>
+        <span style={{color:ac,fontSize:".6rem",flexShrink:0,transform:open?"rotate(180deg)":"none",transition:"transform .2s"}}>▼</span>
+      </button>
+      {open&&(
+        <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,right:0,
+          background:"#1c1508",border:`1px solid ${ac}55`,borderRadius:7,
+          maxHeight:240,overflowY:"auto",zIndex:500,boxShadow:"0 12px 40px rgba(0,0,0,.7)"}}>
+          {options.map(opt=>(
+            <div key={opt} onClick={()=>{onChange(opt);setOpen(false)}}
+              style={{padding:"9px 14px",fontSize:".78rem",cursor:"pointer",
+                borderBottom:"1px solid rgba(255,255,255,.04)",
+                color:opt===value?al:CREAM,background:opt===value?`${ac}33`:"transparent",transition:"background .1s"}}
+              onMouseEnter={e=>{if(opt!==value)e.currentTarget.style.background=`${ac}1a`}}
+              onMouseLeave={e=>{if(opt!==value)e.currentTarget.style.background="transparent"}}
+            >{opt}</div>
+          ))}
+        </div>
+      )}
+      {value&&(
+        <div style={{marginTop:4}}>
+          <span style={{background:`${ac}22`,border:`1px solid ${ac}55`,color:al,
+            fontSize:".66rem",padding:"2px 9px",borderRadius:20,display:"inline-block",
+            maxWidth:"100%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            ✓ {value}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ST({children,color=G}){
+  return(
+    <div style={{fontSize:".59rem",letterSpacing:".22em",textTransform:"uppercase",
+      color,marginBottom:9,display:"flex",alignItems:"center",gap:8}}>
+      {children}
+      <div style={{flex:1,height:1,background:`${color}33`}}/>
+    </div>
+  );
+}
+
+function App(){
+  const [category,setCategory]=useState("mx");
+  const isFit=category==="fit";
+  const ac=isFit?FIT:G, al=isFit?FITL:GL, ad=isFit?FITD:GD;
+
+  const [hook,setHook]=useState("");
+  const [plat,setPlat]=useState("");
+  const [prod,setProd]=useState("");
+  const [tone,setTone]=useState("educativo");
+  const [extra,setExtra]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [postTxt,setPostTxt]=useState("");
+  const [postVis,setPostVis]=useState(false);
+  const [history,setHistory]=useState([]);
+  const [stats,setStats]=useState({total:0,ses:0,cop:0});
+  const [toast,setToast]=useState({msg:"",on:false});
+  const [pWA,setPWA]=useState("522214282564");
+  const toastRef=useRef(null);
+
+  useEffect(()=>{setHook("");setPlat("");setProd("");setPostVis(false);setPostTxt("");},[category]);
+
+  const hooks=isFit?HOOKS_FIT:HOOKS_MX;
+  const platillos=isFit?PLATILLOS_FIT:PLATILLOS_MX;
+  const productos=isFit?PRODUCTOS_FIT:PRODUCTOS_MX;
+
+  const showToast=msg=>{
+    setToast({msg,on:true});
+    if(toastRef.current)clearTimeout(toastRef.current);
+    toastRef.current=setTimeout(()=>setToast({msg:"",on:false}),3000);
+  };
+
+  const copyPost=()=>{
+    if(!postTxt)return;
+    const done=()=>{setStats(s=>({...s,cop:s.cop+1}));showToast("📋 Post copiado")};
+    navigator.clipboard?.writeText(postTxt).then(done).catch(()=>{
+      const ta=document.createElement("textarea");
+      ta.value=postTxt;ta.style.cssText="position:fixed;opacity:0;top:0;left:0";
+      document.body.appendChild(ta);ta.select();
+      try{document.execCommand("copy")}catch(e){}
+      document.body.removeChild(ta);done();
+    });
+  };
+
+  const sendWA=()=>{
+    if(!postTxt)return;
+    window.open(`https://wa.me/${pWA}?text=${encodeURIComponent(postTxt)}`,"_blank");
+  };
+
+  const generatePost=async()=>{
+    if(!hook){showToast("⚠️ Selecciona un hook primero");return}
+    if(!plat){showToast("⚠️ Selecciona un platillo");return}
+    setLoading(true);setPostVis(false);setPostTxt("");
+    const producto=prod||(isFit?"Sartén de acero T304 (cocina con mínimo aceite)":"Juego completo de ollas");
+    const prompt=isFit
+      ?`Eres experto en marketing fitness para "Inoxidables del Norte", marca de utensilios de acero inoxidable T304.
+Crea un post Instagram/Facebook para audiencia FITNESS:
+• Hook EXACTO: "${hook}"
+• Platillo: "${plat}"
+• Producto: "${producto}"
+• Tono: ${TONE_DESC[tone]}
+• Extra: "${extra||"ninguno"}"
+REGLAS: 1)Inicia EXACTAMENTE con el hook 2)Conecta con beneficios T304 para atletas: cocina sin aceite, conserva nutrientes, no libera tóxicos 3)Tono motivador 4)Máx 220 palabras 5)3-5 emojis 6)Última línea: "📲 Escríbenos por WhatsApp: +${pWA}" 7)Hashtags: #AceroInoxidable #CocinaFit #InoxidablesDelNorte #MealPrep
+RESPONDE SOLO CON EL POST.`
+      :`Eres experto en marketing para "Inoxidables del Norte", marca de utensilios de acero inoxidable T304.
+Crea un post Instagram/Facebook:
+• Hook EXACTO: "${hook}"
+• Platillo: "${plat}"
+• Producto: "${producto}"
+• Tono: ${TONE_DESC[tone]}
+• Extra: "${extra||"ninguno"}"
+REGLAS: 1)Inicia EXACTAMENTE con el hook 2)Conecta con beneficios T304: no libera toxinas, no guarda bacterias, dura años 3)Máx 220 palabras 4)3-5 emojis 5)Última línea: "📲 Escríbenos por WhatsApp: +${pWA}" 6)Hashtags: #AceroInoxidable #CocinaSaludable #InoxidablesDelNorte
+RESPONDE SOLO CON EL POST.`;
+
+    try{
+      // Llama al proxy de Netlify — no expone la API key
+      const res=await fetch("/.netlify/functions/generate",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({prompt})
+      });
+      if(!res.ok){
+        let em=`Error ${res.status}`;
+        try{const d=await res.json();em=d?.error||em}catch(_){}
+        throw new Error(em);
+      }
+      const data=await res.json();
+      if(!data.text)throw new Error("Sin respuesta de IA");
+      setPostTxt(data.text);setPostVis(true);
+      setStats(s=>({...s,total:s.total+1,ses:s.ses+1}));
+      setHistory(h=>[{plat,preview:data.text.slice(0,85)+"…",full:data.text,cat:category},...h].slice(0,6));
+      showToast("✨ ¡Post generado!");
+    }catch(err){
+      console.error(err);
+      showToast("❌ "+(err.message||"Error al generar"));
+    }finally{
+      setLoading(false);
+    }
+  };
+
+  return(
+    <div style={{background:DARK,minHeight:"100vh",color:CREAM,fontFamily:"Montserrat,sans-serif",
+      backgroundImage:"radial-gradient(ellipse at 10% 20%,rgba(201,168,76,.07) 0%,transparent 50%),radial-gradient(ellipse at 90% 80%,rgba(30,92,56,.07) 0%,transparent 50%)"}}>
+
+      {/* HEADER */}
+      <div style={{textAlign:"center",padding:"26px 20px 10px"}}>
+        <div style={{fontFamily:"Cormorant Garamond,serif",
+          fontSize:"clamp(1.4rem,4vw,2.4rem)",fontWeight:700,color:G,
+          textShadow:"0 0 40px rgba(201,168,76,.35)"}}>
+          ∞ Inoxidables <em style={{fontWeight:400}}>del Norte</em>
+        </div>
+        <div style={{fontSize:".64rem",letterSpacing:".26em",textTransform:"uppercase",color:"#8ab4c8",marginTop:4}}>
+          Robot de Posts · Cocina Saludable & Fitness
+        </div>
+        <div style={{width:70,height:1,background:`linear-gradient(90deg,transparent,${G},transparent)`,margin:"9px auto"}}/>
+      </div>
+
+      {/* TABS */}
+      <div style={{padding:"4px 16px 14px",maxWidth:980,margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",borderRadius:10,
+          overflow:"hidden",border:"1px solid rgba(201,168,76,.22)"}}>
+          {[
+            {id:"mx",label:"🫕  Comida Mexicana",bg:`linear-gradient(135deg,${GD},${G})`,color:DARK},
+            {id:"fit",label:"💪  Fitness & Salud",bg:`linear-gradient(135deg,${FITD},${FIT})`,color:"#fff"},
+          ].map(tab=>(
+            <button key={tab.id} onClick={()=>setCategory(tab.id)} style={{
+              padding:"13px 8px",border:"none",cursor:"pointer",
+              background:category===tab.id?tab.bg:"rgba(255,255,255,.03)",
+              color:category===tab.id?tab.color:"rgba(255,255,255,.55)",
+              fontFamily:"Montserrat,sans-serif",fontWeight:700,fontSize:".71rem",
+              letterSpacing:".1em",textTransform:"uppercase",transition:"all .25s",
+              borderRight:tab.id==="mx"?"1px solid rgba(201,168,76,.2)":"none"
+            }}>{tab.label}</button>
+          ))}
+        </div>
+        {isFit&&(
+          <div style={{marginTop:8,background:`${FIT}18`,border:`1px solid ${FIT}33`,
+            borderRadius:7,padding:"7px 14px",fontSize:".67rem",color:FITL,
+            textAlign:"center",letterSpacing:".1em",textTransform:"uppercase"}}>
+            💪 Modo Fitness Activo — posts orientados a atletas y personas saludables
+          </div>
+        )}
+      </div>
+
+      {/* GRID */}
+      <div style={{display:"grid",gridTemplateColumns:"300px 1fr",maxWidth:980,margin:"0 auto",padding:"0 16px 48px"}}>
+
+        {/* LEFT */}
+        <div style={{background:isFit?`${FIT}08`:"rgba(255,255,255,.025)",
+          borderRight:`1px solid ${ac}2a`,padding:"20px 18px",
+          display:"flex",flexDirection:"column",gap:18,transition:"background .3s"}}>
+
+          <div><ST color={ac}>🎣 Hook</ST>
+            <Select placeholder="Seleccionar hook…" options={hooks} value={hook} onChange={setHook} ac={ac} al={al}/>
+          </div>
+          <div><ST color={ac}>{isFit?"🥗 Receta Fit":"🍽️ Platillo"}</ST>
+            <Select placeholder={isFit?"Seleccionar receta…":"Seleccionar platillo…"}
+              options={platillos} value={plat} onChange={setPlat} ac={ac} al={al}/>
+          </div>
+          <div><ST color={ac}>🥘 Producto</ST>
+            <Select placeholder="Seleccionar producto…" options={productos} value={prod} onChange={setProd} ac={ac} al={al}/>
+          </div>
+
+          <div>
+            <ST color={ac}>🎨 Tono</ST>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+              {TONES.map(t=>(
+                <button key={t.k} onClick={()=>setTone(t.k)} style={{
+                  background:tone===t.k?`${ac}30`:"rgba(255,255,255,.04)",
+                  border:`1px solid ${tone===t.k?ac:ac+"25"}`,color:tone===t.k?al:CREAM,
+                  padding:"8px 4px",borderRadius:6,fontSize:".69rem",
+                  cursor:"pointer",fontFamily:"Montserrat,sans-serif",transition:"all .2s"}}>{t.l}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <ST color={ac}>✏️ Detalle extra</ST>
+            <textarea value={extra} onChange={e=>setExtra(e.target.value)} rows={2}
+              placeholder={isFit?"Ej: enfocarse en proteínas…":"Ej: destacar oferta de mayo…"}
+              style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1px solid ${ac}30`,
+                color:CREAM,padding:"9px 12px",borderRadius:6,
+                fontFamily:"Montserrat,sans-serif",fontSize:".79rem",outline:"none",resize:"none"}}/>
+          </div>
+
+          <div>
+            <ST color={ac}>📲 WhatsApp CTA</ST>
+            <input value={pWA} onChange={e=>setPWA(e.target.value.replace(/\D/g,""))}
+              placeholder="Ej: 522214282564"
+              style={{width:"100%",background:"rgba(255,255,255,.05)",border:`1px solid ${ac}33`,
+                color:CREAM,padding:"9px 12px",borderRadius:6,
+                fontFamily:"Montserrat,sans-serif",fontSize:".79rem",outline:"none"}}/>
+            <div style={{marginTop:4,fontSize:".63rem",color:"rgba(255,255,255,.3)"}}>Número que aparece al final del post</div>
+          </div>
+
+          <div style={{height:1,background:`${ac}1a`}}/>
+
+          <button onClick={generatePost} disabled={loading} style={{
+            width:"100%",padding:"14px",
+            background:isFit?`linear-gradient(135deg,${FITD},${FIT},${FITD})`:`linear-gradient(135deg,${GD},${G},${GD})`,
+            backgroundSize:"200% 200%",border:"none",borderRadius:8,
+            color:isFit?"#fff":DARK,fontFamily:"Montserrat,sans-serif",fontWeight:800,
+            fontSize:".82rem",letterSpacing:".13em",textTransform:"uppercase",
+            cursor:loading?"not-allowed":"pointer",opacity:loading?.5:1,
+            animation:loading?"none":"shimmer 3s ease infinite",
+            boxShadow:loading?"none":`0 4px 20px ${ac}44`}}>
+            {loading?"⏳ Generando…":isFit?"💪 Generar Post Fitness":"✨ Generar Post con IA"}
+          </button>
+        </div>
+
+        {/* RIGHT */}
+        <div style={{padding:"20px 22px 20px 24px",display:"flex",flexDirection:"column",gap:18}}>
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+            {[["Posts",stats.total],["Sesión",stats.ses],["Copiados",stats.cop]].map(([lbl,val])=>(
+              <div key={lbl} style={{background:"rgba(255,255,255,.03)",
+                border:`1px solid ${ac}22`,borderRadius:8,padding:12,textAlign:"center"}}>
+                <div style={{fontFamily:"Cormorant Garamond,serif",fontSize:"1.9rem",fontWeight:700,color:ac,lineHeight:1}}>{val}</div>
+                <div style={{fontSize:".58rem",textTransform:"uppercase",letterSpacing:".1em",color:"rgba(255,255,255,.35)",marginTop:4}}>{lbl}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{background:"rgba(255,255,255,.03)",border:`1px solid ${ac}2a`,
+            borderRadius:10,minHeight:280,position:"relative",overflow:"hidden"}}>
+            {loading&&(
+              <div style={{position:"absolute",inset:0,background:"rgba(26,18,8,.92)",
+                display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14,zIndex:20}}>
+                <div style={{width:44,height:44,border:`3px solid ${ac}30`,borderTopColor:ac,
+                  borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+                <div style={{fontSize:".74rem",color:al,letterSpacing:".1em",
+                  fontStyle:"italic",animation:"pulse 1.5s ease infinite"}}>
+                  {isFit?"Generando post fitness con IA…":"Creando tu post con IA…"}
+                </div>
+              </div>
+            )}
+            {!loading&&!postVis&&(
+              <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",
+                alignItems:"center",justifyContent:"center",gap:12,
+                color:"rgba(255,255,255,.18)",textAlign:"center",padding:20}}>
+                <div style={{fontSize:"2.8rem",opacity:.2}}>{isFit?"💪":"🥘"}</div>
+                <div style={{fontSize:".77rem",lineHeight:1.7}}>
+                  Selecciona un <strong style={{color:ac}}>hook</strong> y un <strong style={{color:ac}}>{isFit?"receta":"platillo"}</strong><br/>
+                  luego presiona Generar Post
+                </div>
+              </div>
+            )}
+            {!loading&&postVis&&(
+              <div style={{padding:24,animation:"fadeUp .4s ease"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <div style={{width:40,height:40,borderRadius:"50%",
+                    background:`linear-gradient(135deg,${ad},${isFit?FIT:GRN})`,
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    fontFamily:"Cormorant Garamond,serif",fontSize:"1.1rem",fontWeight:700,color:al,flexShrink:0}}>I</div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:".82rem"}}>@inoxidablesdelnorte</div>
+                    <div style={{fontSize:".67rem",color:"rgba(255,255,255,.38)"}}>
+                      {isFit?"Fitness & Nutrición · Acero T304":"Cocina Saludable · Acero T304"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",
+                  borderRadius:8,padding:16,fontSize:".85rem",lineHeight:1.85,
+                  whiteSpace:"pre-wrap",color:CREAM,minHeight:140}}>
+                  {postTxt}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {postVis&&!loading&&(
+            <div style={{display:"flex",gap:9,flexWrap:"wrap",animation:"fadeUp .3s ease"}}>
+              {[
+                {l:"📋 Copiar Post",fn:copyPost,bg:`${ac}22`,bc:`${ac}55`,c:al},
+                {l:"🔄 Regenerar",fn:generatePost,bg:"rgba(255,255,255,.05)",bc:"rgba(255,255,255,.15)",c:CREAM},
+                {l:"💬 WhatsApp",fn:sendWA,bg:"rgba(37,211,102,.15)",bc:"rgba(37,211,102,.35)",c:"#25d366"},
+              ].map(b=>(
+                <button key={b.l} onClick={b.fn} style={{
+                  padding:"9px 16px",borderRadius:6,fontFamily:"Montserrat,sans-serif",fontSize:".72rem",
+                  fontWeight:600,cursor:"pointer",letterSpacing:".06em",textTransform:"uppercase",
+                  transition:"all .2s",background:b.bg,border:`1px solid ${b.bc}`,color:b.c}}>{b.l}</button>
+              ))}
+            </div>
+          )}
+
+          <div style={{background:`${ac}0c`,borderLeft:`3px solid ${ad}`,padding:"11px 14px",
+            borderRadius:"0 6px 6px 0",fontSize:".72rem",lineHeight:1.65,color:"rgba(255,255,255,.45)"}}>
+            {isFit
+              ?<><strong style={{color:al}}>💡 Tip Fitness:</strong> Posts con hook de rendimiento + receta de proteína generan hasta 4× más saves. Usa tono "Salud" o "Educativo".</>
+              :<><strong style={{color:al}}>💡 Tip:</strong> Posts con hook de salud + platillo familiar generan hasta 3× más engagement. Alterna tonos cada semana.</>
+            }
+          </div>
+
+          <div>
+            <ST color={ac}>📚 Últimos posts</ST>
+            {history.length===0
+              ?<div style={{color:"rgba(255,255,255,.2)",fontSize:".72rem"}}>Los posts aparecerán aquí…</div>
+              :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))",gap:9}}>
+                {history.map((item,i)=>(
+                  <div key={i} onClick={()=>{setPostTxt(item.full);setPostVis(true)}}
+                    style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",
+                      borderRadius:8,padding:11,fontSize:".69rem",lineHeight:1.55,
+                      cursor:"pointer",color:"rgba(255,255,255,.5)",transition:"all .2s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor=`${ac}55`;e.currentTarget.style.color=CREAM}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,.07)";e.currentTarget.style.color="rgba(255,255,255,.5)"}}>
+                    <span style={{fontSize:".57rem",background:item.cat==="fit"?`${FIT}22`:`${G}22`,
+                      color:item.cat==="fit"?FITL:GL,padding:"2px 7px",borderRadius:20,
+                      textTransform:"uppercase",letterSpacing:".06em",display:"inline-block",marginBottom:4}}>
+                      {item.cat==="fit"?"💪 Fit":"🫕 Mx"}
+                    </span>
+                    <div style={{fontSize:".65rem",color:"rgba(255,255,255,.3)",marginBottom:3,
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.plat}</div>
+                    {item.preview}
+                  </div>
+                ))}
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* TOAST */}
+      <div style={{position:"fixed",bottom:22,right:22,
+        background:toast.msg.startsWith("❌")?"#c0392b":GRN,
+        color:"#fff",padding:"11px 20px",borderRadius:8,fontSize:".79rem",fontWeight:600,
+        opacity:toast.on?1:0,transform:toast.on?"translateY(0)":"translateY(8px)",
+        transition:"all .3s",zIndex:999,pointerEvents:"none",boxShadow:"0 4px 20px rgba(0,0,0,.4)"}}>
+        {toast.msg}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>
